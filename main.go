@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"sync"
+)
+
 /*
 1. Deklarasikan variabel global stokTiket = 1
 2. Di dalam fungsi main, buat variabel WaitGroup (misal: var wg sync.WaitGroup)
@@ -16,3 +21,24 @@ package main
 
 */
 
+var stokTiket = 1
+var mutex  sync.Mutex
+
+func main() {
+	var wg sync.WaitGroup
+	for index :=  1; index <= 50; index++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			mutex.Lock()
+			defer mutex.Unlock()
+			if stokTiket > 0 {
+				fmt.Println("Tiket berhasil di beli")
+				stokTiket--
+			}
+		}()
+	}
+	wg.Wait()
+	fmt.Println(stokTiket)
+
+}
