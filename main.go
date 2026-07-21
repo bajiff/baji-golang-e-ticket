@@ -1,24 +1,31 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 /*
-1. Deklarasikan variabel global stokTiket = 1
-2. Di dalam fungsi main, buat variabel WaitGroup (misal: var wg sync.WaitGroup)
-3. Buat perulangan (for loop) sebanyak 50 kali.
-4. Di dalam loop, beritahu WaitGroup ada 1 goroutine baru (wg.Add(1)).
-5. Masih di dalam loop, panggil sebuah goroutine anonim (pakai kata kunci `go func()`).
-6. Di dalam goroutine tersebut:
-     a. Tulis pengecekan: JIKA stokTiket > 0
-     b. Cetak ke terminal "Tiket berhasil dibeli!"
-     c. Kurangi stokTiket sebanyak 1 (stokTiket--)
-     d. Akhiri tugas goroutine (wg.Done())
-7. Di luar loop, di akhir fungsi main, perintahkan WaitGroup untuk menunggu (wg.Wait())
-8. Cetak hasil akhir stokTiket ke terminal.
+1. Di dalam fungsi main, buat Context dengan batas waktu (timeout) 2 detik.
+   (Gunakan: ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Second))
+2. WAJIB: Pasang jaring pengaman `defer cancel()` tepat di bawahnya.
+3. Buat sebuah pipa komunikasi (channel) untuk menampung pesan sukses:
+   chSukses := make(chan string)
 
+4. Jalankan sebuah goroutine anonim (`go func()`) untuk mensimulasikan API Bank yang lambat:
+   a. Di dalam goroutine, buat program tertidur selama 5 detik: time.Sleep(5 * time.Second)
+   b. Setelah bangun, kirimkan teks ke dalam pipa: chSukses <- "Checkout di Midtrans Berhasil!"
+
+5. Di luar goroutine (kembali ke jalur utama fungsi main), buat blok `select` untuk mengadu dua kondisi:
+   a. case pesan := <-chSukses:
+      (Artinya: Jika pipa Bank merespons duluan)
+      Cetak isi variabel `pesan` ke terminal.
+
+   b. case <-ctx.Done():
+      (Artinya: Jika stopwatch Context berbunyi duluan sebelum Bank merespons)
+      Cetak teks peringatan: "Timeout! API Bank terlalu lambat, transaksi dibatalkan."
 */
 
 var stokTiket = 1
@@ -40,5 +47,22 @@ func main() {
 	}
 	wg.Wait()
 	fmt.Println(stokTiket)
+
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Second)	
+	defer cancel()
+	chSukses := make(chan string)
+
+	go func(){
+		time.Sleep(5 * time.Second)
+		chSukses <- "Sukses di Midtrans Berhasil"
+	}()
+	
+	select {
+	case pesan := <- chSukses:
+		fmt.Println("Berhasil cuy", pesan)
+	case <- ctx.Done():
+		fmt.Printf("Timeout! API Bank terlalu lambat, transaksi dibatalkan: %v\n", ctx.Done())
+	}
 
 }
