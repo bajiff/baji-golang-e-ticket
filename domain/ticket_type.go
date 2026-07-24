@@ -77,6 +77,6 @@ func (t *TicketType) IsFlashSaleActive() error {
 	if rightNow.After(t.FlashSaleEnd) {
 		return errors.New("flash sale sudah berakhir")
 	}
-	
 	return  nil
+	
 }
