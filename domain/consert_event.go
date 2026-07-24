@@ -12,18 +12,36 @@ type ConcertEvent struct {
 	MaxCapacity int
 }
 
-/* 
-Buat Fungsi Factory NewEventKonser:
+type TicketPrice struct {
+	value int
+}
 
-Fungsi ini harus menerima 4 parameter input: id, nama, waktu, dan kapasitas.
+type TicketType struct {
+	ID string
+	EventID string
+	Name string
+	Price TicketPrice
+	Quota int
+}
 
-Validasi 1 (Kapasitas): Cek apakah kapasitas < 0. Jika ya, kembalikan EventKonser{} kosong dan error "kapasitas tidak boleh negatif".
+func NewTicketPrice(amount int) (TicketPrice, error) {
 
-Validasi 2 (Waktu): Cek apakah input waktu terjadi sebelum saat ini menggunakan waktu.Before(time.Now()). Jika ya, kembalikan error "jadwal konser tidak boleh di masa lalu".
+	if amount < 0 {
+		return TicketPrice{}, errors.New("harga tiket tidak boleh negatif")
+	}
 
-Jika semua validasi berhasil dilewati, kembalikan struct EventKonser yang sudah diisi penuh beserta nil untuk error.
+	return TicketPrice{value: amount}, nil
+}
 
-*/
+func NewTypeTicket(id string, eventId string, name string, price TicketPrice, quota int) (TicketType, error) {
+
+	if quota < 0 {
+		return TicketType{}, errors.New("kuota tiket tidak boleh negatif")
+	}
+
+	return TicketType{ID: id, EventID: eventId, Name: name, Price: price, Quota: quota}, nil
+}
+
 
 func NewConcertEvent(concertId string, eventName string, eventTime time.Time, capacity int) (ConcertEvent, error) {
 
