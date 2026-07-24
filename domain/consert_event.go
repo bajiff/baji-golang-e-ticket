@@ -24,6 +24,35 @@ type TicketType struct {
 	Quota int
 }
 
+// Value Object
+type OrderItem struct {
+	id string
+	ticketTypeID string
+	quantity int
+	subtotal int
+}
+
+// Aggregrat Root
+type Order struct {
+	ID string
+	UserID string
+	Items []OrderItem
+	TotalAmount int
+}
+
+func (o *Order) AddItem(ticketTypeID string, quantity int, pricePerItem int) {
+	subTotal := quantity * pricePerItem
+
+	newItem := OrderItem{
+		id: "",ticketTypeID: ticketTypeID,quantity: quantity,subtotal: subTotal,
+	}
+	
+	o.Items = append(o.Items, newItem)
+	o.TotalAmount += subTotal
+}
+
+
+
 func NewTicketPrice(amount int) (TicketPrice, error) {
 
 	if amount < 0 {
